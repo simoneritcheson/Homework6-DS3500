@@ -19,6 +19,8 @@ max_ta = sections_df['max_ta'].values
 # make sure it's not going over the max number. have baby arrays in big array [min, max]
 section_data = np.column_stack((min_ta, max_ta))
 
+times = sections_df['daytime'].values
+
 # Combine Data
 num_tas = len(ta_data)
 num_sections = len(section_data)
@@ -36,6 +38,8 @@ data = np.array(data_arrays)
 # start by randomly assigning them to a practicum with no consideration for their preferences
 
 # agents optimize as it runs
-print(data)
+print(times)
+print(section_data)
+
 
 
