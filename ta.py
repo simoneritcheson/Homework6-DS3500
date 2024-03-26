@@ -37,9 +37,14 @@ data = np.array(data_arrays)
 # loop through different lists within the list, assign a random number from the TA options
 # start by randomly assigning them to a practicum with no consideration for their preferences
 
-# agents optimize as it runs
-print(times)
-print(section_data)
 
 
+# Add objectives below
+
+
+def overallocation(data, max_assigned):
+    """ If a TA requests at most 2 labs and you assign to them 5 labs, that’s an overallocation penalty of 3. 
+    Compute the objective by summing the overallocation penalty over all TAs. There is no minimum allocation"""
+
+    return [num_assigned - max_assigned[i] for i, num_assigned in enumerate(map(sum, data)) if num_assigned > max_assigned[i]]
 
