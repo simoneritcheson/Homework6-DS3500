@@ -46,5 +46,6 @@ def overallocation(data, max_assigned):
     """ If a TA requests at most 2 labs and you assign to them 5 labs, that’s an overallocation penalty of 3. 
     Compute the objective by summing the overallocation penalty over all TAs. There is no minimum allocation"""
 
-    return [num_assigned - max_assigned[i] for i, num_assigned in enumerate(map(sum, data)) if num_assigned > max_assigned[i]]
+    return sum([num_assigned - max_assigned[i] for i, num_assigned in enumerate(map(sum, data)) if num_assigned > max_assigned[i]])
+
 
