@@ -22,7 +22,9 @@ max_ta = sections_df['max_ta'].values
 # make sure it's not going over the max number. have baby arrays in big array [min, max]
 section_data = np.column_stack((min_ta, max_ta))
 
-times = sections_df['daytime'].values
+def times(sections_df):
+    return sections_df['daytime'].values
+times = times(sections_df)
 
 # Combine Data
 num_tas = len(ta_data)
@@ -52,3 +54,22 @@ def overallocation(data, max_assigned):
     return sum([num_assigned - max_assigned[i] for i, num_assigned in enumerate(map(sum, data)) if num_assigned > max_assigned[i]])
 
 
+
+def time_conflict(data, times):
+    penalty = 0
+    for i in range(len(data)):
+        ta_array = data[i]
+        indices = np.where(ta_array==1)[0]
+        #print('this is indeces: ', indices)
+        selected_times = times[indices]
+        # Check if there's a conflict 
+        has_conflict = len(selected_times) != len(np.unique(selected_times))
+        #print("Is there a time conflict?", has_conflict)
+        if has_conflict:
+            penalty += 1
+    return penalty
+
+
+
+total_time_conflict_penalty = time_conflict(data,times)
+print(total_time_conflict_penalty)
