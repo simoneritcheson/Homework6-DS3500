@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+import pytest
 
 tas_df = pd.read_csv('tas.csv')
 sections_df = pd.read_csv('sections.csv')
@@ -9,7 +10,9 @@ sections_df = pd.read_csv('sections.csv')
 ta_data = tas_df.iloc[:, 3:].replace({'U': 0, 'W': 1, 'P': 2}).values
 
 # we still need max_assigned information for each TA:
-max_assigned = tas_df['max_assigned'].values
+def max_assigned(tas_df):
+    return tas_df['max_assigned'].values
+max_assigned = max_assigned(tas_df)
 # what we will have to do with max_assigned: # loop through and see when a TA id is assigned too many times, correspond it to max_assigned index
 
 # Process Section Data
