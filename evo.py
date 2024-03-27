@@ -8,18 +8,10 @@ from functools import reduce
 
 class Environment:
     """
-    real world example: suppose you're a traveling saleman and you want to visit all n ciites and return back to homebase as short as possible.
-    there could be multiple objectives: you're trying to minimize path, cost (maybe you could fly, take a bus, take a car), time (some paths might be
-    one solution might be sequence of cities in orders. your objects are measuring how good that sequence is with respect to time, cost, and total difference.
-    mutation comes along and says: lets pick two of those cities from our solution and swap the order. introducing a small variation into the solution.
-    not trying to sort or solve in any intelligent way. since there are n cities, there are n! possible sequences. so it becomes a computationally intense problem to actually minimize these objectives.
-    evolution: survival of the fittest. solutions that are better adapted to the goals of the objectives. and agents are mutations
+    add documentation
     """
     def __init__(self):
         """ Environment constructor """
-        # in traveling salemen example, self.pop would look like:
-        # ((cost, 5), (time, 3), (dist, 10)) --> city sequence
-        # the reason we make the evaluation the key is because if we have two solutions with the exact same evaluation, we want to make sure our population doesn't fill up with duplicates
         self.pop = {} # the key is evaluation across all objects --> the actual solution.
         self.fitness = {} # objectives/fitness functions. name of function --> f
         self.agents = {} # agents: name of agent --> (operator/function, num_solutions_input)

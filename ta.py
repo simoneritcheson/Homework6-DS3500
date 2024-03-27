@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+import pytest
 
 tas_df = pd.read_csv('tas.csv')
 sections_df = pd.read_csv('sections.csv')
@@ -9,7 +10,9 @@ sections_df = pd.read_csv('sections.csv')
 ta_data = tas_df.iloc[:, 3:].replace({'U': 0, 'W': 1, 'P': 2}).values
 
 # we still need max_assigned information for each TA:
-max_assigned = tas_df['max_assigned'].values
+def max_assigned(tas_df):
+    return tas_df['max_assigned'].values
+max_assigned = max_assigned(tas_df)
 # what we will have to do with max_assigned: # loop through and see when a TA id is assigned too many times, correspond it to max_assigned index
 
 # Process Section Data
@@ -37,7 +40,15 @@ data = np.array(data_arrays)
 # loop through different lists within the list, assign a random number from the TA options
 # start by randomly assigning them to a practicum with no consideration for their preferences
 
-# agents optimize as it runs
-print(data)
+
+
+# Add objectives below
+
+
+def overallocation(data, max_assigned):
+    """ If a TA requests at most 2 labs and you assign to them 5 labs, that’s an overallocation penalty of 3. 
+    Compute the objective by summing the overallocation penalty over all TAs. There is no minimum allocation"""
+
+    return sum([num_assigned - max_assigned[i] for i, num_assigned in enumerate(map(sum, data)) if num_assigned > max_assigned[i]])
 
 
