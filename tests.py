@@ -1,6 +1,6 @@
 import pytest
 import pandas as pd
-from ta import overallocation, time_conflict, undersupport
+from ta import overallocation, time_conflict, undersupport, unwilling
 from ta import max_assigned, times, section_data ##Imports for data
 
 # read in test csvs
@@ -20,9 +20,9 @@ def test_overallocation(sample_solutions):
 
 def test_timeconflict(sample_solutions):
     test_1, test_2, test_3 = sample_solutions
-    assert time_conflict(test_1, times) == 42
-    assert time_conflict(test_2, times) == 43
-    assert time_conflict(test_3, times) == 44
+    assert time_conflict(test_1, times) == 8
+    assert time_conflict(test_2, times) == 5
+    assert time_conflict(test_3, times) == 2
 
 def test_undersupport(sample_solutions):
     test_1, test_2, test_3 = sample_solutions
@@ -30,3 +30,8 @@ def test_undersupport(sample_solutions):
     assert undersupport(test_2, section_data) == 0
     assert undersupport(test_3, section_data) == 7
 
+def test_unwilling(sample_solutions):
+    test_1, test_2, test_3 = sample_solutions
+    assert unwilling(test_1) == 53
+    assert unwilling(test_2) == 58
+    assert unwilling(test_3) == 43

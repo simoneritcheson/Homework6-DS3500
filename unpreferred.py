@@ -52,7 +52,7 @@ data = np.array(data_arrays)
 
 
 # Define the fitness function
-def unpreferred(solution, tas_df):
+def unpreferred(data, tas_df):
     """
     Calculate the fitness of the solution based on the number of times TAs are allocated
     to sections where they are willing but not preferred.
@@ -65,16 +65,21 @@ def unpreferred(solution, tas_df):
     """
     # this was my original function, it is now not working so I went about it another way on line 73
     # Calculate unpreferred count using list comprehension
-    #unpreferred_count = sum(1 for idx, ta_row in tas_df.iterrows() for section, preference in ta_row.items() if
-                         #  preference == 'W' and solution[int(section) - 1] == 1 and int(section) - 1 < len(solution))
-    #return unpreferred_count
+    unpreferred_count = sum(1 for idx, ta_row in tas_df.iterrows() for section, preference in ta_row.items() if
+                          preference == 'W' and data[int(section) - 1] == 1 and int(section) - 1 < len(data))
+
+    return unpreferred_count
 
 
-    return sum(1 for idx, ta_row in tas_df.iterrows() for section, preference in ta_row.items() if
-               preference == 'W' and any(preference != 'U' for preference in ta_row[2:]) and ta_row[section] == 'W')
+    #return sum(1 for idx, ta_row in tas_df.iterrows() for section, preference in ta_row.items() if
+          #     preference == 'W' and any(preference != 'U' for preference in ta_row[2:]) and ta_row[section] == 'W')
+
+test_1 = (pd.read_csv('test1.csv', header=None)).to_numpy()
+test_2 = (pd.read_csv('test2.csv', header=None)).to_numpy()
+test_3 = (pd.read_csv('test3.csv', header=None)).to_numpy()
 
 # Call the unpreferred function with the solution array and tas_df
-unpreferred_count = unpreferred(solution, tas_df)
+unpreferred_count = unpreferred(test_1, tas_df)
 
 # Print the result
 print("the unpreferred count is:", unpreferred_count)

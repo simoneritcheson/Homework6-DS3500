@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
-import pytest
 import evo
+import random as rnd
 
 tas_df = pd.read_csv('tas.csv')
 sections_df = pd.read_csv('sections.csv')
@@ -122,16 +122,101 @@ def unwilling(data):
     return sum(unwilling_count)
 
 
+
+
+
+def swapper(data):
+    """
+    swaps two random rows
+    :param solutions:  numpy array, one solution
+    :return: new solution generated from original
+    """
+    #accesses single solution
+
+    new = data[0]
+
+    # choses two random rows within solutions
+    i = rnd.randrange(0, len(new))
+    j = rnd.randrange(0, len(new))
+
+    #swaps random rows
+    new[i], new[j] = new[j], new[i]
+
+    return new
+
+def reallocate(data):
+    """
+    finding which ta's are overallocared and swapping the index of an assigned
+    :param solutions: numpy array, one solution
+    :return: update solutions
+    """
+
+    #accesses single solution
+    new = data[0]
+
+    #list of position in sol of each ta who is overallocated
+    over = [i for ta, max, i in zip(new, section_prefs, range(len(new))) if sum(ta) > max]
+
+    # if no tas overallocated
+    if not over:
+        return new
+    #chose random overallocated ta
+    ta = rnd.choice(over)
+
+    while True:
+        i = rnd.randrange(0, len(new[ta]))
+
+        if section assigned, unassign
+        if new[ta][i] == 1:
+            new[ta][i] = 0
+            return new
+
+def trade_rows(data):
+    """
+    swaps one row of solution with another solutions row (swap TA assignment)
+    param solutions: numpy array, one solution
+    :return: new solution generated from original
+    """
+    #accesses first solution
+    sol1 = data[0]
+
+    #access second solution
+    sol2 = data[1]
+
+    #choses random row i
+    i = rnd.randrange(0, len(sol1))
+
+    #swaps row i of sol 1 with row i of sol 2
+    sol1[i] = sol2[i]
+    return sol1
+
+
 def main():
     # create the environment
     E = evo.Environment()
 
     # register the fitness functions
     E.add_fitness_criteria("unwilling", unwilling)
+    E.add_fitness_criteria("overallocation", overallocation)
+    E.add_fitness_criteria("timeconflict", time_conflict)
+    #E.add_fitness_criteria("underpreferred", underpreferred) # SIMONE ADD TO TA.PY
+
+    # register agents
+    E.add_agent("swapper", swapper, 1) # each only take 1 solution as input
+    #E.add_agent("reallocate", reallocate, 1)
+   # E.add_agent("traderows", trade_rows, 1)
+
 
     data = np.array(data_arrays)
-    print(data)
+    E.add_solution(data)
+
+    # run the evolver
+    E.evolve(1, 100, 1)  # this is saying (run  ___ iterations, __ , print out results for every __)
+
+    # print the final result
+    print(E)
 
 
 if __name__ == '__main__':
     main()
+print(data)
