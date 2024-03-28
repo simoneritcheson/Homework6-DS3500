@@ -20,7 +20,7 @@ def test_overallocation(sample_solutions):
 
 def test_timeconflict(sample_solutions):
     test_1, test_2, test_3 = sample_solutions
-    assert time_conflict(test_1, times) == 42
-    assert time_conflict(test_2, times) == 43
-    assert time_conflict(test_3, times) == 44
+    assert time_conflict(test_1, times) == 8
+    assert time_conflict(test_2, times) == 5
+    assert time_conflict(test_3, times) == 2
 

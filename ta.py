@@ -56,15 +56,15 @@ def overallocation(data, max_assigned):
 
 
 def time_conflict(data, times):
+    """if a TA is assigned to two labs meeting at the same time, add a penalty. 
+    If a TA has multiple time conflicts, still count that as one overall time conflict for that TA. Max 
+    number of penalties per TA is 1. """
     penalty = 0
     for i in range(len(data)):
         ta_array = data[i]
         indices = np.where(ta_array==1)[0]
-        #print('this is indeces: ', indices)
         selected_times = times[indices]
-        # Check if there's a conflict 
         has_conflict = len(selected_times) != len(np.unique(selected_times))
-        #print("Is there a time conflict?", has_conflict)
         if has_conflict:
             penalty += 1
     return penalty
@@ -73,3 +73,11 @@ def time_conflict(data, times):
 
 total_time_conflict_penalty = time_conflict(data,times)
 print(total_time_conflict_penalty)
+
+
+test_1 = (pd.read_csv('test1.csv', header=None)).to_numpy()
+test_2 = (pd.read_csv('test2.csv', header=None)).to_numpy()
+test_3 = (pd.read_csv('test3.csv', header=None)).to_numpy()
+
+test = time_conflict(test_3, times)
+print('test', test)
