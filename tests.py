@@ -1,7 +1,7 @@
 import pytest
 import pandas as pd
-from ta import overallocation, time_conflict ###Imports for functions
-from ta import max_assigned, times ##Imports for data 
+from ta import overallocation, time_conflict, undersupport
+from ta import max_assigned, times, section_data ##Imports for data
 
 # read in test csvs
 @pytest.fixture
@@ -23,4 +23,10 @@ def test_timeconflict(sample_solutions):
     assert time_conflict(test_1, times) == 42
     assert time_conflict(test_2, times) == 43
     assert time_conflict(test_3, times) == 44
+
+def test_undersupport(sample_solutions):
+    test_1, test_2, test_3 = sample_solutions
+    assert undersupport(test_1, section_data) == 1
+    assert undersupport(test_2, section_data) == 0
+    assert undersupport(test_3, section_data) == 7
 
