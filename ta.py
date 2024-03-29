@@ -111,10 +111,12 @@ def time_conflict(data, times):
     ])
     return penalty
 
+
 def unwilling(data):
-    unwilling_lst =  np.where((data == 1) & (section_prefs == 'U'), 1, 0)
+    unwilling_lst = np.where((data == 1) & (section_prefs == 'U'), 1, 0)
     unwilling_count = [sum(lst) for lst in unwilling_lst]
     return sum(unwilling_count)
+
 
 def unpreferred(data):
     """
@@ -127,20 +129,21 @@ def unpreferred(data):
         Returns:
         float: Fitness value of the solution. Lower values indicate better fitness.
         """
-    unpreferred_lst =  np.where((data == 1) & (section_prefs == 'W'), 1, 0)
+    unpreferred_lst = np.where((data == 1) & (section_prefs == 'W'), 1, 0)
     unpreferred_count = [sum(lst) for lst in unpreferred_lst]
     return sum(unpreferred_count)
 
+
 def allocate(data):
     """
-    finding which ta's are overallocared and swapping the index of an assigned
-    :param solutions: numpy array, one solution
-    :return: update solutions
+    Optimize allocated TAs
+    Parameter: (numpy array) data of solutions
+    Return: new array of solutions
     """
 
     new_solution = np.copy(data)
 
-    #list of position in sol of each ta who is overallocated
+    # list of position in sol of each ta who is overallocated
     overallocated_tas = [i for i, ta_assignments in enumerate(data) if np.sum(ta_assignments) > allocation[i]]
 
     # if no tas overallocated
@@ -166,13 +169,14 @@ def allocate(data):
 
     return new_solution
 
-def trade_rows(data):
+
+def swap_tas(data):
     """
-    swaps one row of solution with another solutions row (swap TA assignment)
-    param solutions: numpy array, one solution
-    :return: new solution generated from original
+    Change rows, essentially randomly changing TA assignments
+    Parameter: (numpy array) data of solutions
+    Return: new array of solutions
     """
-    #accesses first solution
+    # accesses first solution
     solution_1, solution_2 = np.copy(data[0]), np.copy(data[1])
 
     row_index = rnd.randrange(0, len(solution_1))
@@ -184,6 +188,25 @@ def trade_rows(data):
     return np.array([solution_1, solution_2])
 
 
+def apply_random(data):
+    """
+    Mutation agent that toggles a random TA/Lab assignment
+
+    Parameter: (numpy array) data of solutions
+    Return: new array of solutions
+    """
+    new_solution = np.copy(data)
+
+    # Choose a random TA index and a random lab section index
+    random_ta_index = rnd.randint(0, len(data) - 1)
+    random_lab_index = rnd.randint(0, len(data[random_ta_index]) - 1)
+
+    # Toggle the assignment (0 to 1 or 1 to 0)
+    new_solution[random_ta_index, random_lab_index] ^= 1
+
+    return new_solution
+
+
 def main():
     # create the environment
     E = evo.Environment()
@@ -191,13 +214,14 @@ def main():
     # register the fitness functions
     E.add_fitness_criteria("unwilling", unwilling)
     E.add_fitness_criteria("overallocation", overallocation)
-    E.add_fitness_criteria("timeconflict", time_conflict)
-    #E.add_fitness_criteria("underpreferred", underpreferred) # SIMONE ADD TO TA.PY
+    E.add_fitness_criteria("time_conflict", time_conflict)
+    E.add_fitness_criteria("unpreferred", unpreferred)
+    E.add_fitness_criteria("undersupport", undersupport)
 
     # register agents
-    #E.add_agent("allocate", allocate, 1)
-   # E.add_agent("traderows", trade_rows, 1)
-
+    E.add_agent("allocate", allocate, 1)
+    E.add_agent("swap_tas", swap_tas, 1)
+    E.add_agent("apply_random", apply_random, 1)
 
     data = np.array(data_arrays)
     E.add_solution(data)
