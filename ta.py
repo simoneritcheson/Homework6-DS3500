@@ -6,6 +6,7 @@ import random as rnd
 tas_df = pd.read_csv('tas.csv')
 sections_df = pd.read_csv('sections.csv')
 section_prefs = tas_df.loc[:, '0']
+allocation = tas_df["max_assigned"].values
 
 # Process TA Data
 # Assume columns 0 to 16 in tas_df correspond to availability and preference
@@ -117,59 +118,44 @@ ADD DOCSTRING
 
 
 def unwilling(data):
-    unwilling_lst = [] = np.where((data == 1) & section_prefs == 'U', 1, 0)
+    unwilling_lst =  np.where((data == 1) & (section_prefs == 'U'), 1, 0)
     unwilling_count = [sum(lst) for lst in unwilling_lst]
     return sum(unwilling_count)
 
-
-
-
-
-def swapper(data):
-    """
-    swaps two random rows
-    :param solutions:  numpy array, one solution
-    :return: new solution generated from original
-    """
-    #accesses single solution
-
-    new = data[0]
-
-    # choses two random rows within solutions
-    i = rnd.randrange(0, len(new))
-    j = rnd.randrange(0, len(new))
-
-    #swaps random rows
-    new[i], new[j] = new[j], new[i]
-
-    return new
-
-def reallocate(data):
+def allocate(data):
     """
     finding which ta's are overallocared and swapping the index of an assigned
     :param solutions: numpy array, one solution
     :return: update solutions
     """
 
-    #accesses single solution
-    new = data[0]
+    new_solution = np.copy(data)
 
     #list of position in sol of each ta who is overallocated
-    over = [i for ta, max, i in zip(new, section_prefs, range(len(new))) if sum(ta) > max]
+    overallocated_tas = [i for i, ta_assignments in enumerate(data) if np.sum(ta_assignments) > allocation[i]]
 
     # if no tas overallocated
-    if not over:
-        return new
-    #chose random overallocated ta
-    ta = rnd.choice(over)
+    if not overallocated_tas:
+        return new_solution
 
-    while True:
-        i = rnd.randrange(0, len(new[ta]))
+    # Choose a random overallocated TA
+    selected_ta_index = rnd.choice(overallocated_tas)
+    selected_ta_assignments = new_solution[selected_ta_index]
 
-        if section assigned, unassign
-        if new[ta][i] == 1:
-            new[ta][i] = 0
-            return new
+    # Find indices of sections assigned to the selected TA
+    assigned_sections_indices = np.where(selected_ta_assignments == 1)[0]
+
+    # If no sections are assigned to the selected TA, return the original solution
+    if not assigned_sections_indices:
+        return new_solution
+
+    # Choose a random section assigned to the selected TA
+    selected_section_index = rnd.choice(assigned_sections_indices)
+
+    # Reallocate the selected section by unassigning it from the selected TA
+    new_solution[selected_ta_index][selected_section_index] = 0
+
+    return new_solution
 
 def trade_rows(data):
     """
@@ -178,17 +164,15 @@ def trade_rows(data):
     :return: new solution generated from original
     """
     #accesses first solution
-    sol1 = data[0]
+    solution_1, solution_2 = np.copy(data[0]), np.copy(data[1])
 
-    #access second solution
-    sol2 = data[1]
+    row_index = rnd.randrange(0, len(solution_1))
 
-    #choses random row i
-    i = rnd.randrange(0, len(sol1))
+    # Swap the selected row between the two solutions
+    solution_1[row_index], solution_2[row_index] = solution_2[row_index], solution_1[row_index]
 
-    #swaps row i of sol 1 with row i of sol 2
-    sol1[i] = sol2[i]
-    return sol1
+    # Return the updated solutions
+    return np.array([solution_1, solution_2])
 
 
 def main():
@@ -203,7 +187,7 @@ def main():
 
     # register agents
     E.add_agent("swapper", swapper, 1) # each only take 1 solution as input
-    #E.add_agent("reallocate", reallocate, 1)
+    #E.add_agent("allocate", allocate, 1)
    # E.add_agent("traderows", trade_rows, 1)
 
 
