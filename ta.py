@@ -186,7 +186,6 @@ def main():
     #E.add_fitness_criteria("underpreferred", underpreferred) # SIMONE ADD TO TA.PY
 
     # register agents
-    E.add_agent("swapper", swapper, 1) # each only take 1 solution as input
     #E.add_agent("allocate", allocate, 1)
    # E.add_agent("traderows", trade_rows, 1)
 
