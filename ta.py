@@ -5,7 +5,7 @@ import random as rnd
 
 tas_df = pd.read_csv('tas.csv')
 sections_df = pd.read_csv('sections.csv')
-section_prefs = tas_df.loc[:, '0']
+section_prefs = tas_df.iloc[0:, 3:].values
 allocation = tas_df["max_assigned"].values
 
 # Process TA Data
