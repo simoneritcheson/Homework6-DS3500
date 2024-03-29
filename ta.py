@@ -202,7 +202,7 @@ def apply_random(data):
     random_lab_index = rnd.randint(0, len(data[random_ta_index]) - 1)
 
     # Toggle the assignment (0 to 1 or 1 to 0)
-    new_solution[random_ta_index, random_lab_index] ^= 1
+    new_solution[random_ta_index, random_lab_index] = 1 - new_solution[random_ta_index, random_lab_index]
 
     return new_solution
 
