@@ -12,7 +12,7 @@ import time
 tas_df = pd.read_csv('tas.csv')
 sections_df = pd.read_csv('sections.csv')
 
-# Create a
+# Create an array of the section preferences for the TAs
 section_prefs = tas_df.iloc[0:, 3:].values
 allocation = tas_df["max_assigned"].values
 # Process TA Data
@@ -49,6 +49,17 @@ data = np.array(data_arrays)
 
 # Add objectives below
 
+def unwilling(data):
+    """
+    Find and return the number of times a TA is assigned to a section where they are unwilling
+
+    :param data: A 2D numpy array where each row represents a TA and each column represents a lab
+    :return:  an int indicating the number of "unwilling" assignments. Lower values indicate better fitness.
+    """
+    unwilling_lst = np.where((data == 1) & (section_prefs == 'U'), 1, 0)
+    unwilling_count = [sum(lst) for lst in unwilling_lst]
+    return sum(unwilling_count)
+
 def overallocation(data):
     """
     If a TA requests at most 2 labs and you assign to them 5 labs, that’s an overallocation penalty of 3.
@@ -61,6 +72,33 @@ def overallocation(data):
     return sum([num_assigned - max_assigned[i] for i, num_assigned in enumerate(map(sum, data)) if
                 num_assigned > max_assigned[i]])
 
+def time_conflict(data):
+    """
+    Calculate the number of time conflicts for assigned TAs.
+    A time conflict occurs when a TA is assigned to multiple sections that meet at the same time.
+
+    :param data: A 2D numpy array where each row represents a TA and each column represents a lab section.
+        A value of 1 indicates the TA is assigned to that section.
+    :return: The total number of TAs with time conflicts.
+    """
+    penalty = sum([
+        1 for ta_array in data if len(set(times[np.where(ta_array == 1)[0]])) != np.sum(ta_array)
+    ])
+    return penalty
+
+def unpreferred(data):
+    """
+    Calculate the fitness of the solution based on the number of times TAs are allocated
+    to sections where they are willing but not preferred.
+
+    :param data: Binary array representing the solution where each element indicates
+                           whether a TA is assigned to a section (1) or not (0).
+
+    :return: Fitness value of the solution. Lower values indicate better fitness.
+        """
+    unpreferred_lst = np.where((data == 1) & (section_prefs == 'W'), 1, 0)
+    unpreferred_count = [sum(lst) for lst in unpreferred_lst]
+    return sum(unpreferred_count)
 
 def undersupport(data):
     """
@@ -82,47 +120,10 @@ def undersupport(data):
     return penalties
 
 
-def time_conflict(data):
-    """
-    Calculate the number of time conflicts for assigned TAs.
-    A time conflict occurs when a TA is assigned to multiple sections that meet at the same time.
-
-    :param data: A 2D numpy array where each row represents a TA and each column represents a lab section.
-        A value of 1 indicates the TA is assigned to that section.
-    :return: The total number of TAs with time conflicts.
-    """
-    penalty = sum([
-        1 for ta_array in data if len(set(times[np.where(ta_array == 1)[0]])) != np.sum(ta_array)
-    ])
-    return penalty
 
 
-def unwilling(data):
-    """
-    Find and return the number of times a TA is assigned to a section where they are unwilling
 
-    :param data: A 2D numpy array where each row represents a TA and each column represents a lab
-    :return:  an int indicating the number of "unwilling" assignments. Lower values indicate better fitness.
-    """
-    unwilling_lst = np.where((data == 1) & (section_prefs == 'U'), 1, 0)
-    unwilling_count = [sum(lst) for lst in unwilling_lst]
-    return sum(unwilling_count)
-
-
-def unpreferred(data):
-    """
-    Calculate the fitness of the solution based on the number of times TAs are allocated
-    to sections where they are willing but not preferred.
-
-    :param data: Binary array representing the solution where each element indicates
-                           whether a TA is assigned to a section (1) or not (0).
-
-    :return: Fitness value of the solution. Lower values indicate better fitness.
-        """
-    unpreferred_lst = np.where((data == 1) & (section_prefs == 'W'), 1, 0)
-    unpreferred_count = [sum(lst) for lst in unpreferred_lst]
-    return sum(unpreferred_count)
-
+# Add agents
 
 def allocate(data):
     """
@@ -149,7 +150,7 @@ def allocate(data):
     assigned_sections_indices = np.where(selected_ta_assignments == 1)[0]
 
     # If no sections are assigned to the selected TA, return the original solution
-    if not assigned_sections_indices:
+    if not assigned_sections_indices.any():
         return new_solution
 
     # Choose a random section assigned to the selected TA
@@ -160,14 +161,13 @@ def allocate(data):
 
     return new_solution
 
-# Add agents
-
 def swap_tas(data):
     """
     Change rows, essentially randomly changing TA assignments
     :param data: (numpy array) data of solutions
     :return: new array of solutions
     """
+
     # accesses first solution
     solution_1, solution_2 = np.copy(data[0]), np.copy(data[1])
 
@@ -207,12 +207,14 @@ def main():
     # create the environment
     E = evo.Environment()
 
+
     # register the fitness functions
     E.add_fitness_criteria("unwilling", unwilling)
     E.add_fitness_criteria("overallocation", overallocation)
     E.add_fitness_criteria("time_conflict", time_conflict)
     E.add_fitness_criteria("unpreferred", unpreferred)
     E.add_fitness_criteria("undersupport", undersupport)
+
 
     # register agents
     E.add_agent("allocate", allocate, 1)
@@ -234,10 +236,10 @@ def main():
     for solution in pareto_solutions:
         overallocate = overallocation(solution)
         conflicts = time_conflict(solution)
-        undersupport = undersupport(solution)
-        unwillingness = unwilling(solution)
-        unpreferred = unpreferred(solution)
-        summary_data.append([groupname, overallocate, conflicts, undersupport, unwillingness, unpreferred])
+        unders = undersupport(solution)
+        unwill = unwilling(solution)
+        unpref = unpreferred(solution)
+        summary_data.append([groupname, overallocate, conflicts, unders, unwill, unpref])
 
     # Save summary table as CSV
     columns = ['groupname', 'overallocation', 'conflicts', 'undersupport', 'unwilling', 'unpreferred']
