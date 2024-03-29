@@ -3,7 +3,7 @@ File: evo.py
 Description: An evolutionary computing framework for multi-objective optimization
 """
 import random as rnd
-import copy # original solution is left unchanged! think of a parent having a child
+import copy
 from functools import reduce
 
 class Environment:
@@ -26,16 +26,15 @@ class Environment:
         self.fitness[name] = f
 
     def add_agent(self, name, op, k=1):
-        """ register a named agent with the framework
-        name: name of agent
-        op: the operator, the function, defines what the agent does
-        k: defines the number of input solutions that the operator/agent operates on
+        """ Rgister a named agent with the framework name: name of agent
+        :param op: the operator, the function, defines what the agent does
+        :param k: defines the number of input solutions that the operator/agent operates on
         """
         self.agents[name] = (op, k)
 
 
     def add_solution(self, sol):
-        """ Evaluate and add a solution to the population """
+        """ Evaluate and add a solution to the population"""
         # we need the key, so we need to evaluate the solution as we add it to the population.
         eval = tuple([(name, f(sol)) for name, f in self.fitness.items()]) # this is saying for each name and function in teh list of fitness functions, create a little tuple that adds the name and evaluation
         self.pop[eval] = sol
@@ -52,11 +51,9 @@ class Environment:
 
     def run_agent(self, name):
         """ Pick some random solutions, apply an agent operator to that solution to make a new solution, then add that new solution.
-        Usually this is some sort of a mutator that randomly changes the population in some way.
-        You can get better results by having a more goal directed agent. Be a little more intelligent and a little less random.
-        Extra credit in homework 6 for more intelligent solution.
 
-        param name: i wanna run this agent """
+        :param name: agent to run
+        """
         op, k = self.agents[name]
         picks = self.get_random_solution(k) # get a random number of solutions
 
@@ -66,7 +63,9 @@ class Environment:
 
     @staticmethod
     def _dominates(p, q):
-        """" p and q are the evaluations of the solutions, not th eactual solutions themselves """
+        """
+        p and q are the evaluations of the solutions, not the solutions themselves
+        """
         # extracting out all the scores, computing all the differences.
         pscores = [score for _,score in p]
         qscores = [score for _,score in q]
@@ -83,7 +82,6 @@ class Environment:
 
 
     def remove_dominated(self):
-        """ check out jupyter notebook that has reduce approach """
         # nds = non dominated solutions
         nds = reduce(Environment._reduce_nds, self.pop.keys(), self.pop.keys()) # starting set is self.pop.keys()
         self.pop = {k:self.pop[k] for k in nds} # new population dictionary with all the non-dominated solutions

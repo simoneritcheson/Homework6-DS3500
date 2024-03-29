@@ -1,73 +1,60 @@
+"""
+File: ta.py
+Description: Formats csv data and establishes objective and agent functions.
+"""
 import pandas as pd
 import numpy as np
 import evo
 import random as rnd
+import time
 
+# Read in csv's
 tas_df = pd.read_csv('tas.csv')
 sections_df = pd.read_csv('sections.csv')
+
+# Create a
 section_prefs = tas_df.iloc[0:, 3:].values
 allocation = tas_df["max_assigned"].values
-
 # Process TA Data
 # Assume columns 0 to 16 in tas_df correspond to availability and preference
 ta_data = tas_df.iloc[:, 3:].replace({'U': 0, 'W': 1, 'P': 2}).values
 
 
-# we still need max_assigned information for each TA:
-def max_assigned(tas_df):
-    return tas_df['max_assigned'].values
-
-
-max_assigned = max_assigned(tas_df)
+# we still need max_assigned information for each TA
+max_assigned = tas_df['max_assigned'].values
 
 
 # Isolate time information for each practicum section
-def times(sections_df):
-    return sections_df['daytime'].values
-
-
-times = times(sections_df)
+times = sections_df['daytime'].values
 
 
 # Process Section Data
-def section_data(sections_df):
-    # Extract the 'min_ta' and 'max_ta' columns from sections_df
-    min_ta = sections_df['min_ta'].values
-    max_ta = sections_df['max_ta'].values
-    # Have baby arrays in big array [min, max]
-    return np.column_stack((min_ta, max_ta))
 
+# Extract the 'min_ta' and 'max_ta' columns from sections_df
+min_ta = sections_df['min_ta'].values
+max_ta = sections_df['max_ta'].values
 
-section_data = section_data(sections_df)
+# Have baby arrays in big array [min, max]
+section_data = np.column_stack((min_ta, max_ta))
+
 # Combine Data
 num_tas = len(ta_data)
 num_sections = len(section_data)
 
-# initialize our solution data structure by having each array (row) represent a ta and each column (or index in that array) represent a lab practicum
-# just initialize it by randomly filling the array's with 0 or 1 (they are assigned or not assigned) and then we will make them better
-
+# Initalize the data by randomly filling the array's with 0 or 1 (they are assigned or not assigned)
 data_arrays = [np.random.randint(2, size=num_sections) for _ in range(num_tas)]
 
 # Combine the individual arrays into a single data structure
 data = np.array(data_arrays)
-print(data)
-
-
-# before we do objectives/agents, function should assign ta's to section.
-# loop through different lists within the list, assign a random number from the TA options
-# start by randomly assigning them to a practicum with no consideration for their preferences
-
 
 # Add objectives below
 
-
-def overallocation(data, max_assigned):
+def overallocation(data):
     """
     If a TA requests at most 2 labs and you assign to them 5 labs, that’s an overallocation penalty of 3.
     Compute the objective by summing the overallocation penalty over all TAs. There is no minimum allocation
 
     :param data: The solution dataframe with each row representing a TA and each column representing a lab section.
-    :param max_assigned: An array with 1 value per TA indicating the maximum amount of lab practicums that TA can be assigned to.
     :return: Total penalty value.
     """
 
@@ -75,13 +62,12 @@ def overallocation(data, max_assigned):
                 num_assigned > max_assigned[i]])
 
 
-def undersupport(data, section_data):
+def undersupport(data):
     """
     If a section needs at least 3 TAs and you only assign 1, count that as 2 penalty points.
     Minimize the total penalty score across all sections. No penalty for too many TAs.
 
     :param data: The solution dataframe with each row representing a TA and each column representing a lab section.
-    :param section_data: A 2D array containing arrays for each lab practicum representing the min and max amount of TAs required.
     :return: A penalty score.
     """
 
@@ -89,21 +75,20 @@ def undersupport(data, section_data):
     num_ones_per_column = np.sum(data, axis=0)
 
     # get penalty scores by matching up corresponding indeces in the num_ones_per_column and section_data arrays
-    # only consider a penalty score when the value in num_ones_per_column is less than the first element in the inner array of section_data
+    # only consider a penalty when the value in num_ones_per_column is less than the first element in the inner array of section_data
     penalties = sum([section_value - num_ones if num_ones < section_value else 0 for num_ones, section_value in
                      zip(num_ones_per_column, section_data[:, 0])])  # section_data[:, 0] selects all the min_amounts
 
     return penalties
 
 
-def time_conflict(data, times):
+def time_conflict(data):
     """
     Calculate the number of time conflicts for assigned TAs.
-
     A time conflict occurs when a TA is assigned to multiple sections that meet at the same time.
 
-    :param data: A 2D numpy array where each row represents a TA and each column represents a lab section. A value of 1 indicates the TA is assigned to that section.
-    :param times: A numpy array containing the meeting times for each lab section.
+    :param data: A 2D numpy array where each row represents a TA and each column represents a lab section.
+        A value of 1 indicates the TA is assigned to that section.
     :return: The total number of TAs with time conflicts.
     """
     penalty = sum([
@@ -113,6 +98,12 @@ def time_conflict(data, times):
 
 
 def unwilling(data):
+    """
+    Find and return the number of times a TA is assigned to a section where they are unwilling
+
+    :param data: A 2D numpy array where each row represents a TA and each column represents a lab
+    :return:  an int indicating the number of "unwilling" assignments. Lower values indicate better fitness.
+    """
     unwilling_lst = np.where((data == 1) & (section_prefs == 'U'), 1, 0)
     unwilling_count = [sum(lst) for lst in unwilling_lst]
     return sum(unwilling_count)
@@ -120,14 +111,13 @@ def unwilling(data):
 
 def unpreferred(data):
     """
-        Calculate the fitness of the solution based on the number of times TAs are allocated
-        to sections where they are willing but not preferred.
+    Calculate the fitness of the solution based on the number of times TAs are allocated
+    to sections where they are willing but not preferred.
 
-        Parameters:
-        solution (np.ndarray): Binary array representing the solution where each element indicates
-                               whether a TA is assigned to a section (1) or not (0).
-        Returns:
-        float: Fitness value of the solution. Lower values indicate better fitness.
+    :param data: Binary array representing the solution where each element indicates
+                           whether a TA is assigned to a section (1) or not (0).
+
+    :return: Fitness value of the solution. Lower values indicate better fitness.
         """
     unpreferred_lst = np.where((data == 1) & (section_prefs == 'W'), 1, 0)
     unpreferred_count = [sum(lst) for lst in unpreferred_lst]
@@ -137,8 +127,9 @@ def unpreferred(data):
 def allocate(data):
     """
     Optimize allocated TAs
-    Parameter: (numpy array) data of solutions
-    Return: new array of solutions
+
+    :param data: (numpy array) data of solutions
+    :return: new array of solutions
     """
 
     new_solution = np.copy(data)
@@ -169,12 +160,13 @@ def allocate(data):
 
     return new_solution
 
+# Add agents
 
 def swap_tas(data):
     """
     Change rows, essentially randomly changing TA assignments
-    Parameter: (numpy array) data of solutions
-    Return: new array of solutions
+    :param data: (numpy array) data of solutions
+    :return: new array of solutions
     """
     # accesses first solution
     solution_1, solution_2 = np.copy(data[0]), np.copy(data[1])
@@ -192,8 +184,8 @@ def apply_random(data):
     """
     Mutation agent that toggles a random TA/Lab assignment
 
-    Parameter: (numpy array) data of solutions
-    Return: new array of solutions
+    :param data: data of solutions
+    :return: new array of solutions
     """
     new_solution = np.copy(data)
 
@@ -208,6 +200,10 @@ def apply_random(data):
 
 
 def main():
+
+    #group name
+    groupname = 'vaas'
+
     # create the environment
     E = evo.Environment()
 
@@ -223,16 +219,34 @@ def main():
     E.add_agent("swap_tas", swap_tas, 1)
     E.add_agent("apply_random", apply_random, 1)
 
-    data = np.array(data_arrays)
     E.add_solution(data)
 
-    # run the evolver
-    E.evolve(1, 100, 1)  # this is saying (run  ___ iterations, __ , print out results for every __)
+    # Get the start time
+    start_time = time.time()
 
-    # print the final result
+    # run for 10 minutes
+    while time.time() - start_time < 600:  # 600 seconds = 10 minutes
+        E.evolve(1)  # run one iteration in each loop
+
+    # Generate the summary table
+    pareto_solutions = list(E.pop.values())  # get non-dominated Pareto-optimal solutions
+    summary_data = []
+    for solution in pareto_solutions:
+        overallocate = overallocation(solution)
+        conflicts = time_conflict(solution)
+        undersupport = undersupport(solution)
+        unwillingness = unwilling(solution)
+        unpreferred = unpreferred(solution)
+        summary_data.append([groupname, overallocate, conflicts, undersupport, unwillingness, unpreferred])
+
+    # Save summary table as CSV
+    columns = ['groupname', 'overallocation', 'conflicts', 'undersupport', 'unwilling', 'unpreferred']
+    summary_df = pd.DataFrame(summary_data, columns=columns)
+    summary_df.to_csv('summary_table.csv', index=False)
+
+    # Print final result
     print(E)
 
 
 if __name__ == '__main__':
     main()
-print(data)

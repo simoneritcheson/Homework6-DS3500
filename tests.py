@@ -1,7 +1,6 @@
 import pytest
 import pandas as pd
 from ta import overallocation, time_conflict, undersupport, unwilling, unpreferred
-from ta import max_assigned, times, section_data  ##Imports for data
 
 
 # read in test csvs
@@ -15,23 +14,23 @@ def sample_solutions():
 
 def test_overallocation(sample_solutions):
     test_1, test_2, test_3 = sample_solutions
-    assert overallocation(test_1, max_assigned) == 37
-    assert overallocation(test_2, max_assigned) == 41
-    assert overallocation(test_3, max_assigned) == 23
+    assert overallocation(test_1) == 37
+    assert overallocation(test_2) == 41
+    assert overallocation(test_3) == 23
 
 
 def test_timeconflict(sample_solutions):
     test_1, test_2, test_3 = sample_solutions
-    assert time_conflict(test_1, times) == 8
-    assert time_conflict(test_2, times) == 5
-    assert time_conflict(test_3, times) == 2
+    assert time_conflict(test_1) == 8
+    assert time_conflict(test_2) == 5
+    assert time_conflict(test_3) == 2
 
 
 def test_undersupport(sample_solutions):
     test_1, test_2, test_3 = sample_solutions
-    assert undersupport(test_1, section_data) == 1
-    assert undersupport(test_2, section_data) == 0
-    assert undersupport(test_3, section_data) == 7
+    assert undersupport(test_1) == 1
+    assert undersupport(test_2) == 0
+    assert undersupport(test_3) == 7
 
 
 def test_unwilling(sample_solutions):
@@ -43,7 +42,7 @@ def test_unwilling(sample_solutions):
 
 def test_unpreferred(sample_solutions):
     test_1, test_2, test_3 = sample_solutions
-    assert unpreferred(data=test_1) == 15
-    assert unpreferred(data=test_2) == 19
-    assert unpreferred(data=test_3) == 10
+    assert unpreferred(test_1) == 15
+    assert unpreferred(test_2) == 19
+    assert unpreferred(test_3) == 10
 
