@@ -1,7 +1,7 @@
 import pytest
 import pandas as pd
-from ta import overallocation, time_conflict, undersupport, unwilling
-from ta import max_assigned, times, section_data, data  ##Imports for data
+from ta import overallocation, time_conflict, undersupport, unwilling, unpreferred
+from ta import max_assigned, times, section_data  ##Imports for data
 
 
 # read in test csvs
@@ -41,4 +41,9 @@ def test_unwilling(sample_solutions):
     assert unwilling(test_3) == 43
     return test_1, test_2, test_3
 
+def test_unpreferred(sample_solutions):
+    test_1, test_2, test_3 = sample_solutions
+    assert unpreferred(data=test_1) == 15
+    assert unpreferred(data=test_2) == 19
+    assert unpreferred(data=test_3) == 10
 

@@ -98,29 +98,38 @@ def undersupport(data, section_data):
 
 def time_conflict(data, times):
     """
-ADD DOCSTRING
-    :param data: 
-    :param times: 
-    :return: 
-    """
-    penalty = 0
-    for i in range(len(data)):
-        ta_array = data[i]
-        indices = np.where(ta_array == 1)[0]
-        # print('this is indeces: ', indices)
-        selected_times = times[indices]
-        # Check if there's a conflict 
-        has_conflict = len(selected_times) != len(np.unique(selected_times))
-        # print("Is there a time conflict?", has_conflict)
-        if has_conflict:
-            penalty += 1
-    return penalty
+    Calculate the number of time conflicts for assigned TAs.
 
+    A time conflict occurs when a TA is assigned to multiple sections that meet at the same time.
+
+    :param data: A 2D numpy array where each row represents a TA and each column represents a lab section. A value of 1 indicates the TA is assigned to that section.
+    :param times: A numpy array containing the meeting times for each lab section.
+    :return: The total number of TAs with time conflicts.
+    """
+    penalty = sum([
+        1 for ta_array in data if len(set(times[np.where(ta_array == 1)[0]])) != np.sum(ta_array)
+    ])
+    return penalty
 
 def unwilling(data):
     unwilling_lst =  np.where((data == 1) & (section_prefs == 'U'), 1, 0)
     unwilling_count = [sum(lst) for lst in unwilling_lst]
     return sum(unwilling_count)
+
+def unpreferred(data):
+    """
+        Calculate the fitness of the solution based on the number of times TAs are allocated
+        to sections where they are willing but not preferred.
+
+        Parameters:
+        solution (np.ndarray): Binary array representing the solution where each element indicates
+                               whether a TA is assigned to a section (1) or not (0).
+        Returns:
+        float: Fitness value of the solution. Lower values indicate better fitness.
+        """
+    unpreferred_lst =  np.where((data == 1) & (section_prefs == 'W'), 1, 0)
+    unpreferred_count = [sum(lst) for lst in unpreferred_lst]
+    return sum(unpreferred_count)
 
 def allocate(data):
     """
