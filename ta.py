@@ -113,6 +113,12 @@ def time_conflict(data, times):
 
 
 def unwilling(data):
+    """
+    Find and return the number of times a TA is assigned to a section where they are unwilling
+
+    Parameters:  A 2D numpy array where each row represents a TA and each column represents a lab
+    Returns:  an int indicating the number of "unwilling" assignments. Lower values indicate better fitness.
+    """
     unwilling_lst = np.where((data == 1) & (section_prefs == 'U'), 1, 0)
     unwilling_count = [sum(lst) for lst in unwilling_lst]
     return sum(unwilling_count)
@@ -124,7 +130,7 @@ def unpreferred(data):
         to sections where they are willing but not preferred.
 
         Parameters:
-        solution (np.ndarray): Binary array representing the solution where each element indicates
+        data (np.ndarray): Binary array representing the solution where each element indicates
                                whether a TA is assigned to a section (1) or not (0).
         Returns:
         float: Fitness value of the solution. Lower values indicate better fitness.
